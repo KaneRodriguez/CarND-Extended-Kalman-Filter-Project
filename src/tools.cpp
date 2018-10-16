@@ -41,7 +41,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations, const vector<
     	return rmse;
     }
   	// Create Sum of the Differences and Square this Sum
-  	for(int i = 0; i < estimations.size(); ++i) {
+  	for(auto i = 0; i < estimations.size(); ++i) {
       	// Difference Between Estimation and True Values
     	auto diff = estimations[i] - ground_truth[i];
       	// Element-wise multiplication Squares each Difference
@@ -53,9 +53,32 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations, const vector<
   	return rmse.array().sqrt();
 }
 
+// Calculates the Jacobian from
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  /**
-  TODO:
-    * Calculate a Jacobian here.
-  */
+	// TODO: check that x_state size == 4
+  	MatrixXd Hj(3, 4);
+  	// Unpack elments of x_state
+  	double px, py, vx, vy = x_state(0), x_state(1), x_state(2), x_state(3);
+  	// Perform and store frequent calucations first
+  	double pSquared = px*px + py*py;
+  	// if this is zero or very close to zero, initialize and return Hj
+  	if(fabs(pSquared) < 0.0001) {
+      	// Error Message
+    	std::cout << "Error - Cannot Calculate Jacobian if px and py are both zero";
+     	// Initialize Hj to all zeros
+      	Hj << 0, 0, 0, 0,
+      		0, 0, 0, 0,
+      		0, 0, 0, 0;
+      	return Hj;
+    }
+  	auto pSqrt = sqrt(pSquared);
+  	auto pxOverPSqrt = px / pSqrt;
+  	auto pyOverPSqrt = py / pSqrt;
+  	auto pSqrtCubed = pSqrt*pSqrt*pSqrt;
+  	
+  	// Fill the Jacobian
+  	Hj << pxOverPSqrt, pyOverPSqrt, 0, 0,
+  		- py / pSquared, px / pSquared, 0, 0,
+  		py(vx*py−vy*px)/pSqrtCubed, px(vy*px−vx*py)/pSqrtCubed, pxOverPSqrt, pyOverPSqrt;
+  	return Hj;
 }
