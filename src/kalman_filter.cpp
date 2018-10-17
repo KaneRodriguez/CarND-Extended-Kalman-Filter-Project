@@ -44,13 +44,16 @@ void KalmanFilter::Update(const VectorXd &z) {
   	auto K_H = K*H_; // Intermediary Calculation
   	
   	// x_ = x_ + K*(z - H_*x_) -> x_ = x_ + K*z - K*H_*x_ -> x_ = K*z + x_(1 - K*H_)
-  	x_ = K*z + x_*(1 - K_H)
+  	x_ = K*z + x_*(MatrixXd::Constant(1,1,1) - K_H);
   	P_ = (I - K_H)*P_;
 }
 // Update the state by using Extended Kalman Filter equations
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// Precalculations
-  	auto px, py, vx, vy = x_(0), x_(1), x_(2), x_(3);
+  	auto px = x_(0), 
+         py = x_(1), 
+         vx = x_(2), 
+         vy = x_(3);
   	// Convert from Cartesian to Polar Coordinates
   	auto r = sqrt(px*px + py*py);
   	auto th = atan2(py, px);
@@ -59,9 +62,9 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   	if(fabs(r) >= 0.0001) {
       r_dot = (px*vx + py*vy)/r;
     }
-  	// Package conversions into a vector
-  	VectorXd z(3);
-  	z << r, th, r_dot;
+  	// Package conversions into a vector and Update KF
+  	VectorXd zed(3);
+  	zed << r, th, r_dot;
   	// Update KF
-  	Update(z);
+  	Update(zed);
 }

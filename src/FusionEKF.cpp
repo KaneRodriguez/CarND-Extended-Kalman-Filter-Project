@@ -69,11 +69,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // Initialize the state ekf_.x_ with the first measurement
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     	// Unpackage Raw Measurements (Radar measures in polar coordinates)
-      	float r, th, r_dot = measurement_pack.raw_measurements_(0), 
-      						 measurement_pack.raw_measurements_(1), 
-     	 					 measurement_pack.raw_measurements_(2);
+      	float r = measurement_pack.raw_measurements_(0), 
+      		  th = measurement_pack.raw_measurements_(1), 
+      		  r_dot = measurement_pack.raw_measurements_(2);
       	// Precalculation
-      	float cosTh, sinTh = cos(th), sin(th);
+      	float cosTh = cos(th), 
+      		  sinTh = sin(th);
       	// Convert radar from polar to cartesian coordinates and initialize state.
       	ekf_.x_ << r*cosTh, r*sinTh, r_dot*cosTh, r_dot*sinTh;
     }
@@ -128,7 +129,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 	// Perform the Update Step Based on Sensor Type
   	if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     	// Radar updates for state and covariance matrices
-      	H_ = Hj_ = tools.CalculateJacobian(ekf_.x_);
+      	ekf_.H_ = Hj_ = tools.CalculateJacobian(ekf_.x_);
         ekf_.R_ = R_radar_;
       	ekf_.UpdateEKF(measurement_pack.raw_measurements_);
     } else {

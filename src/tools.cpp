@@ -41,11 +41,12 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations, const vector<
     	return rmse;
     }
   	// Create Sum of the Differences and Square this Sum
-  	for(auto i = 0; i < estimations.size(); ++i) {
+  	for(unsigned int i = 0; i < estimations.size(); ++i) {
       	// Difference Between Estimation and True Values
-    	auto diff = estimations[i] - ground_truth[i];
+    	VectorXd diff = estimations[i] - ground_truth[i];
       	// Element-wise multiplication Squares each Difference
-      	rmse += diff.array() * diff.array();
+      	VectorXd diff_2 = diff.array() * diff.array();
+      	rmse += diff_2;
     }
   	// Divide rmse by number of diff's computed
   	rmse /= estimations.size();
@@ -55,10 +56,12 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations, const vector<
 
 // Calculates the Jacobian from
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-	// TODO: check that x_state size == 4
   	MatrixXd Hj(3, 4);
   	// Unpack elments of x_state
-  	double px, py, vx, vy = x_state(0), x_state(1), x_state(2), x_state(3);
+  	double px = x_state(0), 
+  		   py = x_state(1), 
+  		   vx = x_state(2), 
+  		   vy = x_state(3);
   	// Perform and store frequent calucations first
   	double pSquared = px*px + py*py;
   	// if this is zero or very close to zero, initialize and return Hj
@@ -69,16 +72,17 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
       	Hj << 0, 0, 0, 0,
       		0, 0, 0, 0,
       		0, 0, 0, 0;
-      	return Hj;
+      	return Hj; 
     }
-  	auto pSqrt = sqrt(pSquared);
-  	auto pxOverPSqrt = px / pSqrt;
-  	auto pyOverPSqrt = py / pSqrt;
-  	auto pSqrtCubed = pSqrt*pSqrt*pSqrt;
-  	
+  	double pSqrt = sqrt(pSquared);
+  	double pxOverPSqrt = px / pSqrt;
+  	double pyOverPSqrt = py / pSqrt;
+  	double pSqrtCubed = pSqrt*pSqrt*pSqrt;
+  
   	// Fill the Jacobian
   	Hj << pxOverPSqrt, pyOverPSqrt, 0, 0,
-  		- py / pSquared, px / pSquared, 0, 0,
-  		py(vx*py−vy*px)/pSqrtCubed, px(vy*px−vx*py)/pSqrtCubed, pxOverPSqrt, pyOverPSqrt;
+  		(-py/pSquared), px/pSquared, 0, 0,
+  		py*(vx*py-vy*px)/pSqrtCubed, px*(vy*px-vx*py)/pSqrtCubed, pxOverPSqrt, pyOverPSqrt;
+  
   	return Hj;
 }
