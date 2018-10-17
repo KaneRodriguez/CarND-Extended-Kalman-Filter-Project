@@ -19,24 +19,49 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   R_ = R_in;
   Q_ = Q_in;
 }
-
+// Predict the State
 void KalmanFilter::Predict() {
-  /**
-  TODO:
-    * predict the state
-  */
+	// Combine Knowledge of the World (F) with
+  	// Prior State Info (x) in order to get
+  	// New State Info
+  	x_ = F_*x_;
+  	// Update the State Uncertainty (P) by 
+    // Using Knowledge of the World (F), the
+    // Process Noise, and the Prior State Uncertainty
+  	P_ = F_*P_*F_.transpose() + Q_;
 }
-
-void KalmanFilter::Update(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Kalman Filter equations
-  */
+// Update the state by using Kalman Filter Equations
+void KalmanFilter::Update(const VectorXd &z) {  
+  	// Precalculations
+  	auto P_Ht = P_*H_.transpose();
+  	auto n = x_.size();
+  	auto I = MatrixXd::Identity(n, n);
+  
+  	// KF Equations
+	auto S = H_*P_Ht + R_;
+  	auto K = P_Ht*S.inverse();
+  	
+  	auto K_H = K*H_; // Intermediary Calculation
+  	
+  	// x_ = x_ + K*(z - H_*x_) -> x_ = x_ + K*z - K*H_*x_ -> x_ = K*z + x_(1 - K*H_)
+  	x_ = K*z + x_*(1 - K_H)
+  	P_ = (I - K_H)*P_;
 }
-
+// Update the state by using Extended Kalman Filter equations
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
+	// Precalculations
+  	auto px, py, vx, vy = x_(0), x_(1), x_(2), x_(3);
+  	// Convert from Cartesian to Polar Coordinates
+  	auto r = sqrt(px*px + py*py);
+  	auto th = atan2(py, px);
+  	float r_dot = 0;
+  	// Check if rho is 0 (or close to it)
+  	if(fabs(r) >= 0.0001) {
+      r_dot = (px*vx + py*vy)/r;
+    }
+  	// Package conversions into a vector
+  	VectorXd z(3);
+  	z << r, th, r_dot;
+  	// Update KF
+  	Update(z);
 }
