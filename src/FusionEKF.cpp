@@ -2,6 +2,7 @@
 #include "tools.h"
 #include "Eigen/Dense"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -13,9 +14,10 @@ using std::vector;
  */
 FusionEKF::FusionEKF() {
     is_initialized_ = false;
-
     previous_timestamp_ = 0;
-
+   	ax = 9.0;
+    ay = 9.0;
+  
     // initializing matrices
     R_laser_ = MatrixXd(2, 2);
     R_radar_ = MatrixXd(3, 3);
@@ -69,11 +71,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // Initialize the state ekf_.x_ with the first measurement
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     	// Unpackage Raw Measurements (Radar measures in polar coordinates)
-      	float r = measurement_pack.raw_measurements_(0), 
+      	double r = measurement_pack.raw_measurements_(0), 
       		  th = measurement_pack.raw_measurements_(1), 
       		  r_dot = measurement_pack.raw_measurements_(2);
       	// Precalculation
-      	float cosTh = cos(th), 
+      	double cosTh = cos(th), 
       		  sinTh = sin(th);
       	// Convert radar from polar to cartesian coordinates and initialize state.
       	ekf_.x_ << r*cosTh, r*sinTh, r_dot*cosTh, r_dot*sinTh;
@@ -95,20 +97,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
     
     // Calculate Change in Time Since Last Time Stamp (in seconds)
-    float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+    double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
     // Update Time Stamp
     previous_timestamp_ = measurement_pack.timestamp_;
-
-    // Account for Noise From Acceleration Components
-   	float ax = 9;
-    float ay = 9;
   
     // Precalculations
-    float dt_2 = dt*dt;
-    float dt_3 = dt*dt_2;
-    float dt_4 = dt*dt_3;
-	float dt_3_ax_over_2 = dt_3*ax/2;
-	float dt_3_ay_over_2 = dt_3*ay/2;
+    double dt_2 = dt*dt;
+    double dt_3 = dt*dt_2;
+    double dt_4 = dt*dt_3;
+	double dt_3_ax_over_2 = dt_3*ax/2;
+	double dt_3_ay_over_2 = dt_3*ay/2;
   
     // Update the state transition matrix F according to the new elapsed time
     ekf_.F_(0, 2) = dt;

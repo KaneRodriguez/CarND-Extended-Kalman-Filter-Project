@@ -1,5 +1,6 @@
 #include <iostream>
 #include "tools.h"
+#include <cmath>
 
 using Eigen::VectorXd;
 using Eigen::MatrixXd;

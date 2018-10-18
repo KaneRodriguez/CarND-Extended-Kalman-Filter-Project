@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include <cmath>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -52,14 +53,14 @@ void KalmanFilter::UpdateWithY(const VectorXd &y) {
 // Update the state by using Extended Kalman Filter equations
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// Precalculations
-  	float px = x_(0), 
+  	double px = x_(0), 
           py = x_(1), 
           vx = x_(2), 
           vy = x_(3);
   	// Convert from Cartesian to Polar Coordinates
-  	float r = sqrt(px*px + py*py);
-  	float th = atan2(py, px);
-  	float r_dot = 0;
+  	double r = sqrt(px*px + py*py);
+  	double th = atan2(py, px);
+  	double r_dot = 0;
   
   	// Check if rho is 0 (or close to it)
   	if(fabs(r) >= 0.0001) {
