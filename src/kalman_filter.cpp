@@ -73,8 +73,8 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   	/* Keep y within bounds. Inspired by:
     https://github.com/darienmt/CarND-Extended-Kalman-Filter-P1/blob/77b1f261006a39cd7fc102a3432d1e544c8eddb4/src/kalman_filter.cpp#L52
   */
-  	while(y(1) > M_PI) y(1) -= M_PI;
-  	while(y(1) < -M_PI) y(1) += M_PI;
+  	while(y(1) > M_PI) y(1) -= 2*M_PI;
+  	while(y(1) < -M_PI) y(1) += 2*M_PI;
   	// Update KF
   	UpdateWithY(y);
 }
