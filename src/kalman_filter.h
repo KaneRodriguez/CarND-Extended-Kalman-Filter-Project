@@ -63,7 +63,14 @@ public:
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+  
+  /**
+   * Updates the state by using standard Kalman Filter equations
+   * @param y
+   */
+  void UpdateWithY(const Eigen::VectorXd &y);
 
+  
 };
 
 #endif /* KALMAN_FILTER_H_ */

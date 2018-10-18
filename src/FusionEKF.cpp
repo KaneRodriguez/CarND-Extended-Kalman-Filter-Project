@@ -43,7 +43,7 @@ FusionEKF::FusionEKF() {
 		       0, 0, 1, 0,
 		       0, 0, 0, 1;
   	// Initialize the State Covariance Matrix 
-  	ekf_.F_ << 1, 0, 0, 0,
+  	ekf_.Q_ << 1, 0, 0, 0,
 		  0, 1, 0, 0,
 		  0, 0, 1000, 0,
 		  0, 0, 0, 1000;
@@ -135,7 +135,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     } else {
       	// Laser updates
         ekf_.H_ = H_laser_;
-        ekf_.R_ = R_radar_;
+        ekf_.R_ = R_laser_;
       	ekf_.Update(measurement_pack.raw_measurements_);
     }
 

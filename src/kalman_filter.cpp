@@ -32,32 +32,35 @@ void KalmanFilter::Predict() {
 }
 // Update the state by using Kalman Filter Equations
 void KalmanFilter::Update(const VectorXd &z) {  
-  	// Precalculations
-  	auto P_Ht = P_*H_.transpose();
-  	auto n = x_.size();
-  	auto I = MatrixXd::Identity(n, n);
-  
   	// KF Equations
-	auto S = H_*P_Ht + R_;
-  	auto K = P_Ht*S.inverse();
-  	
-  	auto K_H = K*H_; // Intermediary Calculation
-  	
-  	// x_ = x_ + K*(z - H_*x_) -> x_ = x_ + K*z - K*H_*x_ -> x_ = K*z + x_(1 - K*H_)
-  	x_ = K*z + x_*(MatrixXd::Constant(1,1,1) - K_H);
-  	P_ = (I - K_H)*P_;
+  	VectorXd zed = H_*x_;
+	VectorXd y = z - zed;
+  	UpdateWithY(y);
 }
+
+void KalmanFilter::UpdateWithY(const VectorXd &y) {
+ 	MatrixXd S = H_*P_*H_.transpose() + R_;
+  	MatrixXd K =  P_*H_.transpose()*S.inverse();
+  	x_ = x_ + K*y;
+  
+  	// Init Identity Matrix Based on Shape of x_
+    long n = x_.size();
+  	MatrixXd I = MatrixXd::Identity(n, n);
+  	P_ = (I - K*H_)*P_; 
+}
+
 // Update the state by using Extended Kalman Filter equations
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// Precalculations
-  	auto px = x_(0), 
-         py = x_(1), 
-         vx = x_(2), 
-         vy = x_(3);
+  	float px = x_(0), 
+          py = x_(1), 
+          vx = x_(2), 
+          vy = x_(3);
   	// Convert from Cartesian to Polar Coordinates
-  	auto r = sqrt(px*px + py*py);
-  	auto th = atan2(py, px);
+  	float r = sqrt(px*px + py*py);
+  	float th = atan2(py, px);
   	float r_dot = 0;
+  
   	// Check if rho is 0 (or close to it)
   	if(fabs(r) >= 0.0001) {
       r_dot = (px*vx + py*vy)/r;
@@ -65,6 +68,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   	// Package conversions into a vector and Update KF
   	VectorXd zed(3);
   	zed << r, th, r_dot;
+  	VectorXd y = z - zed;
   	// Update KF
-  	Update(zed);
+  	UpdateWithY(y);
 }
